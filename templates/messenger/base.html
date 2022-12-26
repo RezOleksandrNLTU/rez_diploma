@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}MSG{% endblock %}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <style href="static/messenger/css/style.css"></style>
+        <style>
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+
+            .no-scrollbar {
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+        </style>
+        <script>
+            let stringToColour = function(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                let colour = '#';
+                for (let i = 0; i < 3; i++) {
+                    let value = (hash >> (i * 8)) & 0xFF;
+                    colour += ('00' + value.toString(16)).substr(-2);
+                }
+                return colour;
+            }
+        </script>
+    </head>
+    <body class="bg-slate-300">
+        <div class="w-3/4 my-10 mx-auto bg-slate-50 rounded p-1 h-auto flex-col items-stretch">
+            {% block header %}
+            {% endblock %}
+        <div class="flex">
+            {% block side_panel %}
+            {% endblock %}
+            {% block content %}
+            {% endblock %}
+        </div>
+        </div>
+    </body>
+</html>

@@ -10,11 +10,12 @@ router = routers.DefaultRouter()
 router.register(r'chats', views.ChatViewSet, basename='chat')
 router.register(r'messages', views.MessageViewSet, basename='message')
 router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'groups', views.GroupViewSet, basename='group')
 
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/messages_list', views.MessageListAPIView.as_view(), name='messages_list'),
 
     path(r'test', TemplateView.as_view(template_name='messenger/message.html', extra_context={'username': 'orez', 'timestamp': '1', 'message': '1'}), name='test'),

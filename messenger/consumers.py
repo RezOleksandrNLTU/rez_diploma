@@ -6,7 +6,6 @@ from channels.generic.websocket import WebsocketConsumer
 from .models import Chat, Message
 from .serializers import ChatSerializer, ExtendedMessageSerializer
 
-
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
         user = self.scope['user']

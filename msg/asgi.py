@@ -14,7 +14,7 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
 
-import messenger.routing
+from messenger import routing
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'msg.settings')
@@ -27,7 +27,7 @@ application = ProtocolTypeRouter({
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
             URLRouter(
-                messenger.routing.websocket_urlpatterns
+                routing.websocket_urlpatterns
             )
         )
     ),

@@ -9,18 +9,36 @@ User._meta.get_field('email')._unique = True
 User._meta.get_field('email').blank = False
 User._meta.get_field('email').null = False
 
+User._meta.get_field('username').blank = False
+User._meta.get_field('username').null = False
+
+User._meta.get_field('password').blank = False
+User._meta.get_field('password').null = False
+
+User.add_to_class("__str__", lambda self: self.email)
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=255, blank=True, unique=True)
+    code = models.CharField(max_length=255, blank=True, unique=True)
+
+    def __str__(self):
+        return str(f'Група {self.name}(id={self.id})')
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     bio = models.TextField(max_length=500, blank=True)
     photo = models.ImageField(upload_to='static/messenger/profile_photos', blank=True)
     email_confirmed = models.BooleanField(default=False)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True, null=True)
+    is_teacher = models.BooleanField(default=False)
 
     def email(self):
         return self.user.email
 
     def __str__(self):
-        return self.user.username
+        return self.user.email
 
 
 @receiver(post_save, sender=User)
@@ -34,12 +52,22 @@ def update_user_profile(sender, instance, created, **kwargs):
 
 
 class Chat(models.Model):
-    name = models.CharField(max_length=255, blank=True)
+    CHAT_TYPES = (
+        ('private', 'private'),
+        ('group', 'group'),
+        ('diploma', 'diploma'),
+    )
+
+    name = models.CharField(max_length=255)
     users = models.ManyToManyField(User, related_name='chats')
     photo = models.ImageField(upload_to='static/messenger/chat_photos', blank=True, null=True)
+    type = models.CharField(max_length=255, choices=CHAT_TYPES, default='group')
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return str(self.id)
+        if self.creator:
+            return str(f'Чат {self.name}(id={self.id}, type={self.type}, creator={self.creator.username})')
+        return str(f'Чат {self.name}(id={self.id}, type={self.type})')
 
 
 def calc_msg_number(chat):

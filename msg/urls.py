@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('accounts/', include('allauth.urls')),
     path('', include('messenger.urls')),
+    # path('api/', include('rest_framework.urls', namespace='rest_framework'))
 ]

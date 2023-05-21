@@ -16,8 +16,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
-from .models import Chat, Message
-from .serializers import ChatSerializer, MessageSerializer, UserSerializer, ExtendedMessageSerializer, ExtendedChatSerializer
+from .models import Chat, Message, Group
+from .serializers import ChatSerializer, MessageSerializer, UserSerializer, ExtendedMessageSerializer, \
+    ExtendedChatSerializer, GroupSerializer
 
 
 @login_required(login_url='/login/')
@@ -147,7 +148,7 @@ class ChatViewSet(viewsets.ModelViewSet):
         return Response({'status': 'ok'})
 
 
-class MessageViewSet(viewsets.ModelViewSet):
+class MessageViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Message.objects.all()
     serializer_class = MessageSerializer
     permission_classes = (IsAuthenticated,)
@@ -170,6 +171,13 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAuthenticated,)
+
+
+class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = (IsAuthenticated,)
+
 
 
 class MessageListAPIView(ListAPIView):

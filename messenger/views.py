@@ -1,3 +1,4 @@
+import requests
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate
@@ -8,11 +9,14 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.models import User
+from rest_framework import serializers
 from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
@@ -20,6 +24,76 @@ from .models import Chat, Message, Group
 from .serializers import ChatSerializer, MessageSerializer, UserSerializer, ExtendedMessageSerializer, \
     ExtendedChatSerializer, GroupSerializer
 
+from rest_framework.decorators import authentication_classes, permission_classes
+
+@authentication_classes([])
+@permission_classes([])
+class GoogleLoginApi(APIView):
+    GOOGLE_ID_TOKEN_INFO_URL = 'https://www.googleapis.com/oauth2/v3/tokeninfo'
+    GOOGLE_ACCESS_TOKEN_OBTAIN_URL = 'https://oauth2.googleapis.com/token'
+    GOOGLE_USER_INFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
+
+    class InputSerializer(serializers.Serializer):
+        code = serializers.CharField(required=False)
+        error = serializers.CharField(required=False)
+
+    def google_get_access_token(self, *, code: str, redirect_uri: str) -> str:
+        # Reference: https://developers.google.com/identity/protocols/oauth2/web-server#obtainingaccesstokens
+        data = {
+            'grant_type': 'authorization_code',
+            'client_id': '163959136765-5qj37lcjnv2g8hci1sjksr5nvj1jnlqj.apps.googleusercontent.com',
+            'client_secret': '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',
+            'redirect_uri': redirect_uri,
+            'code': code,
+        }
+        response = requests.post(self.GOOGLE_ACCESS_TOKEN_OBTAIN_URL, data=data)
+        if not response.ok:
+            raise ValidationError('Failed to obtain access token from Google.')
+        access_token = response.json()['access_token']
+        return access_token
+
+    def google_get_user_info(self, *, access_token: str):
+        # Reference: https://developers.google.com/identity/protocols/oauth2/web-server#callinganapi
+        response = requests.get(
+            self.GOOGLE_USER_INFO_URL,
+            params={'access_token': access_token}
+        )
+
+        if not response.ok:
+            raise ValidationError('Failed to obtain user info from Google.')
+
+        return response.json()
+
+    def get(self, request, *args, **kwargs):
+        input_serializer = self.InputSerializer(data=request.GET)
+        input_serializer.is_valid(raise_exception=True)
+        validated_data = input_serializer.validated_data
+        code = validated_data.get('code')
+        error = validated_data.get('error')
+        login_url = f'http://localhost:8000/login'
+        if error or not code:
+            return Response({'login_url': login_url}, 400)
+            # return redirect(login_url)
+        redirect_uri = f'http://localhost:8000/accounts/google/login/callback/'
+
+        access_token = self.google_get_access_token(code=code, redirect_uri=redirect_uri)
+
+        user_data = self.google_get_user_info(access_token=access_token)
+
+        profile_data = {
+            'email': user_data['email'],
+            'first_name': user_data.get('givenName', ''),
+            'last_name': user_data.get('familyName', ''),
+        }
+
+        user, created = User.objects.get_or_create(
+            email=profile_data['email'],
+            defaults=profile_data
+        )
+
+        response = redirect('home')
+        login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        return response
 
 @login_required(login_url='/login/')
 def home(request):

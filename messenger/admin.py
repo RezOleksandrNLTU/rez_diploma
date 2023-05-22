@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 from .models import Profile, Chat, Message
 from .forms import CustomUserCreationForm
+from allauth.socialaccount.models import SocialAccount
 
 
 class ProfileAdmin(admin.ModelAdmin):

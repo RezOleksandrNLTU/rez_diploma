@@ -40,12 +40,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
+
     'django.contrib.sites',
     'allauth',
     'allauth.account',
+    'rest_auth.registration',
+
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -187,5 +193,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     )
     ,
-    'PAGE_SIZE': 20
+    'PAGE_SIZE': 20,
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
 }

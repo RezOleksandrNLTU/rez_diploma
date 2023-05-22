@@ -14,9 +14,15 @@ router.register(r'groups', views.GroupViewSet, basename='group')
 
 
 urlpatterns = [
+    # re_path(r'^rest-auth/google/$', views.GoogleLogin.as_view(), name='google_login'),
+    # path('google/', views.GoogleLoginApi.as_view(), name='login-with-google'),
+
+    path('accounts/google/login/callback/', views.GoogleLoginApi.as_view(), name='google_login'),
+
     path('api/', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/messages_list', views.MessageListAPIView.as_view(), name='messages_list'),
+
 
     path(r'test', TemplateView.as_view(template_name='messenger/message.html', extra_context={'username': 'orez', 'timestamp': '1', 'message': '1'}), name='test'),
 

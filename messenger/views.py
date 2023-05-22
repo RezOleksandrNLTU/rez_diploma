@@ -17,14 +17,15 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.decorators import authentication_classes, permission_classes
 
 from .forms import SignUpForm
 from .tokens import account_activation_token
 from .models import Chat, Message, Group
 from .serializers import ChatSerializer, MessageSerializer, UserSerializer, ExtendedMessageSerializer, \
     ExtendedChatSerializer, GroupSerializer
+from msg.settings import BASE_FRONTEND_URL
 
-from rest_framework.decorators import authentication_classes, permission_classes
 
 @authentication_classes([])
 @permission_classes([])
@@ -70,10 +71,10 @@ class GoogleLoginApi(APIView):
         validated_data = input_serializer.validated_data
         code = validated_data.get('code')
         error = validated_data.get('error')
-        login_url = f'http://localhost:8000/login'
+        login_url = f'{BASE_FRONTEND_URL}/login?error={error}'
+
         if error or not code:
-            return Response({'login_url': login_url}, 400)
-            # return redirect(login_url)
+            return redirect(login_url)
         redirect_uri = f'http://localhost:8000/accounts/google/login/callback/'
 
         access_token = self.google_get_access_token(code=code, redirect_uri=redirect_uri)
@@ -91,7 +92,7 @@ class GoogleLoginApi(APIView):
             defaults=profile_data
         )
 
-        response = redirect('home')
+        response = redirect(BASE_FRONTEND_URL)
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         return response
 

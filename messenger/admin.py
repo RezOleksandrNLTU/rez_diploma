@@ -2,9 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from .models import Profile, Chat, Message
+from .models import Profile, Chat, Message, Group
 from .forms import CustomUserCreationForm
-from allauth.socialaccount.models import SocialAccount
 
 
 class ProfileAdmin(admin.ModelAdmin):
@@ -39,8 +38,14 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ('chat', )
 
 
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.unregister(User)
 admin.site.register(User, UserAdminCustom)
 admin.site.register(Chat, ChatAdmin)
 admin.site.register(Message, MessageAdmin)
+admin.site.register(Group, GroupAdmin)

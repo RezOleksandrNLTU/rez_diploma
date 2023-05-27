@@ -25,6 +25,26 @@ class Group(models.Model):
     def __str__(self):
         return str(f'Група {self.name}(id={self.id})')
 
+    class Meta:
+        verbose_name = 'Student group'
+        verbose_name_plural = 'Student groups'
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if not self.code:
+            self.code = self.name
+
+        group_chat = Chat.objects.filter(name=self.name, type='group', group=self)
+        if not group_chat:
+            group_chat = Chat.objects.create(name=f'Дипломний чат {self.name}', type=Chat.CHAT_TYPES[2][0],
+                                             group=self)
+            group_users = Profile.objects.filter(group=self)
+            for user in group_users:
+                group_chat.users.add(user.user)
+            group_chat.save()
+        super().save(force_insert, force_update, using, update_fields)
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -63,6 +83,7 @@ class Chat(models.Model):
     photo = models.ImageField(upload_to='static/messenger/chat_photos', blank=True, null=True)
     type = models.CharField(max_length=255, choices=CHAT_TYPES, default='group')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
         if self.creator:

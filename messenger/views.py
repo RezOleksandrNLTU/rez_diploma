@@ -306,7 +306,6 @@ class ChatViewSet(viewsets.ModelViewSet):
             return Response({'error': 'You are not allowed to remove users from this chat.'}, status=403)
 
         users = request.data.getlist('users', [])
-        print(users)
 
         if str(sender.id) in users:
             return Response({'error': 'You are not allowed to remove yourself from this chat.'}, status=403)

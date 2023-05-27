@@ -58,7 +58,14 @@ class CreateChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = ('id', 'name', 'users', 'photo', 'type', 'creator', 'group')
-        read_only_fields = ('id', 'type', 'creator', 'group')
+        read_only_fields = ('id', 'creator', 'group')
+
+
+class UpdateChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chat
+        fields = ('id', 'name', 'users', 'photo', 'type', 'creator', 'group')
+        read_only_fields = ('id', 'type', 'creator', 'group', 'users')
 
 
 class ExtendedChatSerializer(ChatSerializer):

@@ -23,7 +23,8 @@ from .forms import SignUpForm
 from .tokens import account_activation_token
 from .models import Chat, Message, Group, Profile
 from .serializers import ChatSerializer, MessageSerializer, UserSerializer, ExtendedMessageSerializer, \
-    DetailedChatSerializer, GroupSerializer, DetailedChatSerializer, CreateChatSerializer, ExtendedChatSerializer
+    DetailedChatSerializer, GroupSerializer, DetailedChatSerializer, CreateChatSerializer, ExtendedChatSerializer, \
+    UpdateChatSerializer
 from msg.settings import BASE_FRONTEND_URL
 
 
@@ -206,7 +207,7 @@ class ChatViewSet(viewsets.ModelViewSet):
         elif self.action == 'list':
             return ChatSerializer
         elif self.action in ['update', 'partial_update']:
-            return CreateChatSerializer
+            return UpdateChatSerializer
         return ChatSerializer
 
     def partial_update(self, request, *args, **kwargs):
@@ -256,7 +257,7 @@ class ChatViewSet(viewsets.ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['post'])
-    def leave_chat(self, request, pk=None):
+    def leave_chat(self, request, *args, **kwargs):
         sender = request.user
         instance = self.get_object()
         if instance.type == Chat.CHAT_TYPES[0][0]:
@@ -304,9 +305,10 @@ class ChatViewSet(viewsets.ModelViewSet):
         if sender != instance.creator:
             return Response({'error': 'You are not allowed to remove users from this chat.'}, status=403)
 
-        users = request.data.get('users', [])
+        users = request.data.getlist('users', [])
+        print(users)
 
-        if sender.id in users:
+        if str(sender.id) in users:
             return Response({'error': 'You are not allowed to remove yourself from this chat.'}, status=403)
 
         for user_id in users:

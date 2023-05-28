@@ -90,6 +90,9 @@ class Chat(models.Model):
             return str(f'Чат {self.name}(id={self.id}, type={self.type}, creator={self.creator.username})')
         return str(f'Чат {self.name}(id={self.id}, type={self.type})')
 
+    def is_user_in_chat(self, user):
+        return self.users.filter(id=user.id).exists()
+
 
 def calc_msg_number(chat):
     present_numbers = Message.objects.filter(chat=chat).order_by('-number').values_list('number', flat=True)

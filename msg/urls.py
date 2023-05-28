@@ -18,9 +18,5 @@ from django.urls import include, path, re_path
 
 urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
-    # path('accounts/', include('allauth.urls')),
-    # re_path(r'^rest-auth/', include('rest_auth.urls')),
-    # re_path(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
     path('', include('messenger.urls')),
-    # path('api/', include('rest_framework.urls', namespace='rest_framework'))
 ]

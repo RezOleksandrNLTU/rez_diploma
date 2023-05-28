@@ -19,6 +19,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class MessageProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('photo',)
+
+
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
 
@@ -34,6 +40,15 @@ class ReadonlyUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
         read_only_fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
+
+
+class MessageUserSerializer(serializers.ModelSerializer):
+    profile = MessageProfileSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'profile')
+        read_only_fields = ('id', 'username', 'first_name', 'last_name', 'profile')
 
 
 class ChatSerializer(serializers.ModelSerializer):
@@ -73,10 +88,9 @@ class ExtendedChatSerializer(ChatSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    user = MessageUserSerializer(read_only=True)
+
     class Meta:
         model = Message
         fields = ('number', 'chat', 'user', 'text', 'timestamp')
-
-
-class ExtendedMessageSerializer(MessageSerializer):
-    user = UserSerializer(read_only=True)

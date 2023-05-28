@@ -4,7 +4,8 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
 from .models import Chat, Message
-from .serializers import ChatSerializer, ExtendedMessageSerializer
+from .serializers import MessageSerializer
+
 
 class ChatConsumer(WebsocketConsumer):
     def connect(self):
@@ -56,7 +57,7 @@ class ChatConsumer(WebsocketConsumer):
         message.save()
 
         # serialise message
-        serialized_message = ExtendedMessageSerializer(message).data
+        serialized_message = MessageSerializer(message).data
         serialized_message['type'] = 'chat_message'
 
         # Send message to room group

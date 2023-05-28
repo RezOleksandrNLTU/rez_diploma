@@ -21,7 +21,7 @@
     let page = 1;
     let active_user_username = '{{ user.username }}';
     const chatId = JSON.parse(document.getElementById('chat-id').textContent);
-    let next_page_url = '{% url 'message-chat-messages-list' %}' + '?chat_id=' + chatId + '&page=' + page;
+    let next_page_url = '{% url 'message-list' %}' + '?chat_id=' + chatId + '&page=' + page;
     let messageBlock = document.getElementById("message-block");
     let loadMessages = document.getElementById("load-messages");
 

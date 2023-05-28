@@ -4,6 +4,9 @@ from rest_framework import serializers
 from .models import Chat, Message, Profile, Group
 
 
+message_timestamp_format = '%Y-%d-%m %H:%M:%S'
+
+
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
@@ -52,10 +55,18 @@ class MessageUserSerializer(serializers.ModelSerializer):
 
 
 class ChatSerializer(serializers.ModelSerializer):
+    last_message = serializers.SerializerMethodField()
+
+    def get_last_message(self, obj):
+        try:
+            return ChatListMessageSerializer(Message.objects.filter(chat=obj).order_by('-number')[0]).data
+        except IndexError:
+            return None
+
     class Meta:
         model = Chat
-        fields = ('id', 'name', 'users', 'photo', 'type', 'creator', 'group')
-        read_only_fields = ('id', 'type', 'creator', 'group')
+        fields = ('id', 'name', 'users', 'photo', 'type', 'creator', 'group', 'last_message')
+        read_only_fields = ('id', 'type', 'creator', 'group', 'last_message')
 
 
 class DetailedChatSerializer(serializers.ModelSerializer):
@@ -88,9 +99,19 @@ class ExtendedChatSerializer(ChatSerializer):
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    timestamp = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    timestamp = serializers.DateTimeField(format=message_timestamp_format)
     user = MessageUserSerializer(read_only=True)
 
     class Meta:
         model = Message
         fields = ('number', 'chat', 'user', 'text', 'timestamp')
+
+
+class ChatListMessageSerializer(serializers.ModelSerializer):
+    timestamp = serializers.DateTimeField(format=message_timestamp_format)
+    user = MessageUserSerializer(read_only=True)
+
+    class Meta:
+        model = Message
+        fields = ('user', 'text', 'timestamp')
+        depth = 1

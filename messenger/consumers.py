@@ -24,7 +24,6 @@ class ChatConsumer(WebsocketConsumer):
 
         self.chat_group_name = 'chat_%s' % self.chat_id
 
-
         # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.chat_group_name,

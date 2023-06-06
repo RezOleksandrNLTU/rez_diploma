@@ -100,10 +100,11 @@ ASGI_APPLICATION = "msg.asgi.application"
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": ['redis://default:redispw@localhost:32768'],
-        },
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": ['redis://default:redispw@localhost:32768'],
+        # },
     },
 }
 

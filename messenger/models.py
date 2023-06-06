@@ -1,14 +1,23 @@
+from urllib.request import urlopen
+from os.path import basename
+
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
+from django.core.files.temp import NamedTemporaryFile
+from django.core.files import File
 
 
 User._meta.get_field('email')._unique = True
 User._meta.get_field('email').blank = False
 User._meta.get_field('email').null = False
 
+User._meta.get_field('username')._unique = False
+User._meta.USERNAME_FIELD = 'email'
+User.USERNAME_FIELD = 'email'
+User.REQUIRED_FIELDS.remove('email')
 User._meta.get_field('username').blank = False
 User._meta.get_field('username').null = False
 
@@ -56,6 +65,17 @@ class Profile(models.Model):
 
     def email(self):
         return self.user.email
+
+    def get_photo_from_url(self, url):
+        photo_tmp = NamedTemporaryFile()
+        with urlopen(url) as uo:
+            assert uo.status == 200
+            photo_tmp.write(uo.read())
+            photo_tmp.flush()
+        photo = File(photo_tmp)
+        file_name = basename(photo_tmp.name) + '.jpg'
+        self.photo.save(basename(file_name), photo)
+        photo_tmp.close()
 
     def __str__(self):
         return self.user.email
@@ -106,6 +126,7 @@ class Message(models.Model):
     chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
+    file = models.FileField(upload_to='static/messenger/message_files', blank=True, null=True)
     number = models.PositiveIntegerField(default=0)
     timestamp = models.DateTimeField(auto_now_add=True)
 

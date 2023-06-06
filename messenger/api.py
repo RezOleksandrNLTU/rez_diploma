@@ -1,4 +1,6 @@
 import requests
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.shortcuts import redirect
 from django.contrib.auth import login
 from rest_framework import viewsets
@@ -77,6 +79,15 @@ class GoogleLoginApi(APIView):
             email=profile_data['email'],
             defaults=profile_data
         )
+
+        if not created:
+            user.first_name = profile_data['first_name']
+            user.last_name = profile_data['last_name']
+            user.save()
+
+        picture_url = user_data.get('picture', '')
+        if picture_url:
+            user.profile.get_photo_from_url(picture_url)
 
         response = redirect(BASE_FRONTEND_URL)
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
@@ -215,38 +226,92 @@ class ChatViewSet(viewsets.ModelViewSet):
         return Response({'status': 'ok'})
 
 
-class MessageViewSet(viewsets.ReadOnlyModelViewSet):
+class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
     serializer_class = msg_serializers.MessageSerializer
     permission_classes = (IsAuthenticated,)
-    http_method_names = ['get']
+    http_method_names = ['get', 'post', 'head', 'options']
 
     def list(self, request, *args, **kwargs):
-        chat_id = request.query_params.get('chat_id')
+        try:
+            queryset = self.get_queryset()
+        except ValidationError as e:
+            return Response({'error': e.detail[0]}, status=e.status_code)
 
-        if not chat_id:
-            return Response({'error': 'chat_id is required.'}, status=400)
-
-        message_chat = Chat.objects.filter(id=chat_id).first()
-
-        if not message_chat:
-            return Response({'error': 'This chat does not exist.'}, status=404)
-
-        if not message_chat.is_user_in_chat(request.user):
-            return Response({'error': 'You are not allowed to see this chat.'}, status=403)
-
-        messages = Message.objects.filter(chat_id=chat_id).order_by('-number')
-        page = self.paginate_queryset(messages)
+        page = self.paginate_queryset(queryset)
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(messages, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, *args, **kwargs):
         return Response({'error': 'Method not allowed.'}, status=405)
+
+    def create(self, request, *args, **kwargs):
+        chat_id = request.data.get('chat_id')
+
+        if not chat_id:
+            return Response({'error': 'Chat id is required.'}, status=400)
+
+        try:
+            chat = Chat.objects.get(id=chat_id)
+        except Chat.DoesNotExist:
+            return Response({'error': 'This chat does not exist.'}, status=404)
+
+        if not chat.is_user_in_chat(request.user):
+            return Response({'error': 'You are not allowed to send messages to this chat.'}, status=403)
+
+        text = request.data.get('text')
+        file = request.data.get('file')
+
+        if not text and not file:
+            return Response({'error': 'Message text or file is required.'}, status=400)
+
+        if text and file:
+            return Response({'error': 'Message text and file are mutually exclusive.'}, status=400)
+
+        if text:
+            message = Message.objects.create(text=text, user=request.user, chat=chat)
+        else:
+            message = Message.objects.create(file=file, user=request.user, chat=chat)
+
+        channel_layer = get_channel_layer()
+        group_name = f'chat_{chat.id}'
+        async_to_sync(channel_layer.group_send)(
+            group_name,
+            {
+                'type': 'chat_message',
+                'message': msg_serializers.MessageSerializer(message).data
+            }
+        )
+
+        serializer = self.get_serializer(message)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=201, headers=headers)
+
+    def get_queryset(self):
+        chat_id = self.request.query_params.get('chat_id')
+
+        if not chat_id:
+            raise ValidationError(detail='chat_id is required.', code=400)
+
+        message_chat = Chat.objects.filter(id=chat_id).first()
+
+        if not message_chat:
+            raise ValidationError(detail='This chat does not exist.', code=404)
+
+        if not message_chat.is_user_in_chat(self.request.user):
+            raise ValidationError(detail='You are not allowed to see this chat.', code=403)
+        starting_number = self.request.query_params.get('starting_number')
+
+        queryset = Message.objects.filter(chat=message_chat)
+
+        if starting_number is not None:
+            queryset = queryset.filter(number__lte=starting_number)
+        return queryset.order_by('-number')
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

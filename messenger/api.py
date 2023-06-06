@@ -28,31 +28,6 @@ class GoogleLoginApi(APIView):
         code = serializers.CharField(required=False)
         error = serializers.CharField(required=False)
 
-    def google_get_access_token(self, *, code: str, redirect_uri: str) -> str:
-        data = {
-            'grant_type': 'authorization_code',
-            'client_id': '163959136765-5qj37lcjnv2g8hci1sjksr5nvj1jnlqj.apps.googleusercontent.com',
-            'client_secret': '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',
-            'redirect_uri': redirect_uri,
-            'code': code,
-        }
-        response = requests.post(self.GOOGLE_ACCESS_TOKEN_OBTAIN_URL, data=data)
-        if not response.ok:
-            raise ValidationError('Failed to obtain access token from Google.')
-        access_token = response.json()['access_token']
-        return access_token
-
-    def google_get_user_info(self, *, access_token: str):
-        response = requests.get(
-            self.GOOGLE_USER_INFO_URL,
-            params={'access_token': access_token}
-        )
-
-        if not response.ok:
-            raise ValidationError('Failed to obtain user info from Google.')
-
-        return response.json()
-
     def get(self, request, *args, **kwargs):
         input_serializer = self.InputSerializer(data=request.GET)
         input_serializer.is_valid(raise_exception=True)
@@ -89,10 +64,37 @@ class GoogleLoginApi(APIView):
         if picture_url:
             user.profile.get_photo_from_url(picture_url)
 
-        response = redirect(BASE_FRONTEND_URL)
+        response_url = f'{BASE_FRONTEND_URL}/login/success/?user_id={user.id}'
+
+        response = redirect(response_url)
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
         response.set_cookie('user_id', user.id)
         return response
+
+    def google_get_access_token(self, *, code: str, redirect_uri: str) -> str:
+        data = {
+            'grant_type': 'authorization_code',
+            'client_id': '163959136765-5qj37lcjnv2g8hci1sjksr5nvj1jnlqj.apps.googleusercontent.com',
+            'client_secret': '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',
+            'redirect_uri': redirect_uri,
+            'code': code,
+        }
+        response = requests.post(self.GOOGLE_ACCESS_TOKEN_OBTAIN_URL, data=data)
+        if not response.ok:
+            raise ValidationError('Failed to obtain access token from Google.')
+        access_token = response.json()['access_token']
+        return access_token
+
+    def google_get_user_info(self, *, access_token: str):
+        response = requests.get(
+            self.GOOGLE_USER_INFO_URL,
+            params={'access_token': access_token}
+        )
+
+        if not response.ok:
+            raise ValidationError('Failed to obtain user info from Google.')
+
+        return response.json()
 
 
 google_login_callback = GoogleLoginApi.as_view()

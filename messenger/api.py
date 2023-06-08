@@ -347,6 +347,38 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by('-number')
 
+    @action(detail=True, methods=['post'])
+    def pin_message(self, request, *args, **kwargs):
+        sender = request.user
+        instance = self.get_object()
+
+        if instance.chat.type == Chat.CHAT_TYPES[0][0]:
+            return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
+        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not instance.profile.is_teacher:
+            return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
+        if sender != instance.chat.creator:
+            return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
+
+        instance.pinned = True
+        instance.save()
+        return Response({'status': 'ok'})
+
+    @action(detail=True, methods=['post'])
+    def unpin_message(self, request, *args, **kwargs):
+        sender = request.user
+        instance = self.get_object()
+
+        if instance.chat.type == Chat.CHAT_TYPES[0][0]:
+            return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
+        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not instance.profile.is_teacher:
+            return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
+        if sender != instance.chat.creator:
+            return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
+
+        instance.pinned = False
+        instance.save()
+        return Response({'status': 'ok'})
+
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()

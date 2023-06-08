@@ -305,17 +305,18 @@ class MessageViewSet(viewsets.ModelViewSet):
         else:
             message = Message.objects.create(file=file, user=request.user, chat=chat)
 
+        serializer = self.get_serializer(message)
+
         channel_layer = get_channel_layer()
         group_name = f'chat_{chat.id}'
         async_to_sync(channel_layer.group_send)(
             group_name,
             {
                 'type': 'chat_message',
-                'message': msg_serializers.MessageSerializer(message).data
+                'message': serializer.data
             }
         )
 
-        serializer = self.get_serializer(message)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=201, headers=headers)
 

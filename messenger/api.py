@@ -49,8 +49,9 @@ class GoogleLoginApi(APIView):
 
         profile_data = {
             'email': user_data['email'],
-            'first_name': user_data.get('givenName', ''),
-            'last_name': user_data.get('familyName', ''),
+            'first_name': user_data.get('given_name', ''),
+            'last_name': user_data.get('family_name', ''),
+            'username': user_data['email'].split('@')[0],
         }
 
         user, created = User.objects.get_or_create(

@@ -354,7 +354,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         if instance.chat.type == Chat.CHAT_TYPES[0][0]:
             return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
-        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not instance.profile.is_teacher:
+        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not sender.profile.is_teacher:
             return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
         if sender != instance.chat.creator:
             return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
@@ -370,7 +370,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         if instance.chat.type == Chat.CHAT_TYPES[0][0]:
             return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
-        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not instance.profile.is_teacher:
+        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not sender.profile.is_teacher:
             return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
         if sender != instance.chat.creator:
             return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)

@@ -1,9 +1,12 @@
+from re import match
+
 import requests
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.shortcuts import redirect
 from django.contrib.auth import login
 from rest_framework import viewsets
+from rest_framework import filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import serializers
@@ -58,11 +61,17 @@ class GoogleLoginApi(APIView):
         if not created:
             user.first_name = profile_data['first_name']
             user.last_name = profile_data['last_name']
-            user.save()
 
         picture_url = user_data.get('picture', '')
         if picture_url:
             user.profile.get_photo_from_url(picture_url)
+
+        email_domain = user.email.split('@')[1]
+
+        if email_domain == 'nltu.edu.ua':
+            user.profile.is_teacher = True
+
+        user.save()
 
         response_url = f'{BASE_FRONTEND_URL}/login/success/?user_id={user.id}'
 
@@ -163,6 +172,22 @@ class ChatViewSet(viewsets.ModelViewSet):
         if request.user != instance.creator:
             return Response({'error': 'You are not allowed to delete this chat.'}, status=403)
         return super().destroy(request, *args, **kwargs)
+
+    @action(detail=False, methods=['get'])
+    def private_chat_exists(self, request, *args, **kwargs):
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id query param is required'}, status=400)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User does not exist'}, status=404)
+        try:
+            Chat.objects.get(users__in=[request.user, user], type=Chat.CHAT_TYPES[0][0])
+        except Chat.DoesNotExist:
+            return Response({'exists': False})
+        else:
+            return Response({'exists': True})
 
     @action(detail=True, methods=['post'])
     def leave_chat(self, request, *args, **kwargs):
@@ -307,12 +332,17 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         if not message_chat.is_user_in_chat(self.request.user):
             raise ValidationError(detail='You are not allowed to see this chat.', code=403)
-        starting_number = self.request.query_params.get('starting_number')
 
         queryset = Message.objects.filter(chat=message_chat)
 
+        starting_number = self.request.query_params.get('starting_number')
         if starting_number is not None:
             queryset = queryset.filter(number__lte=starting_number)
+
+        pinned = self.request.query_params.get('pinned')
+        if pinned is not None:
+            queryset = queryset.filter(pinned=pinned)
+
         return queryset.order_by('-number')
 
 
@@ -320,6 +350,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = msg_serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('first_name', 'last_name')
     http_method_names = ['get', 'head', 'options', 'post']
 
     @action(detail=False, methods=['post'], name='Change group')

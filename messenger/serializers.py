@@ -104,7 +104,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ('number', 'chat', 'user', 'text', 'file', 'timestamp')
+        fields = ('number', 'chat', 'user', 'text', 'file', 'timestamp', 'pinned')
 
 
 class ChatListMessageSerializer(serializers.ModelSerializer):
@@ -113,5 +113,5 @@ class ChatListMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ('user', 'text', 'file', 'timestamp')
+        fields = ('user', 'text', 'file', 'timestamp', 'pinned')
         depth = 1

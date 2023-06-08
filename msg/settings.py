@@ -159,7 +159,7 @@ SITE_ID = 3
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-APPEND_SLASH = False
+APPEND_SLASH = True
 
 
 # Internationalization

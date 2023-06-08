@@ -129,6 +129,7 @@ class Message(models.Model):
     file = models.FileField(upload_to='static/messenger/message_files', blank=True, null=True)
     number = models.PositiveIntegerField(default=0)
     timestamp = models.DateTimeField(auto_now_add=True)
+    pinned = models.BooleanField(default=False)
 
     def Meta(self):
         unique_together = ("chat", "number")

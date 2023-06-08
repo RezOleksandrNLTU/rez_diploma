@@ -382,3 +382,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
         user.save()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], name='Get me')
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)

@@ -344,8 +344,8 @@ class MessageViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(number__lte=starting_number)
 
         pinned = self.request.query_params.get('pinned')
-        if pinned == 1:
-            queryset = queryset.filter(pinned=pinned)
+        if pinned == '1':
+            queryset = queryset.filter(pinned=True)
 
         return queryset.order_by('-number')
 

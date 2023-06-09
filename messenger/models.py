@@ -138,6 +138,7 @@ class Message(models.Model):
         return str(self.id)
 
     def save(self, *args, **kwargs):
-        number = calc_msg_number(self.chat)
-        self.number = number
+        if not self.pk:
+            number = calc_msg_number(self.chat)
+            self.number = number
         super(Message, self).save(*args, **kwargs)

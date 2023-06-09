@@ -322,6 +322,8 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=201, headers=headers)
 
     def get_queryset(self):
+        if self.action in ['pin_message', 'unpin_message']:
+            return Message.objects.filter(chat__users=self.request.user)
         chat_id = self.request.query_params.get('chat_id')
 
         if not chat_id:
@@ -342,12 +344,12 @@ class MessageViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(number__lte=starting_number)
 
         pinned = self.request.query_params.get('pinned')
-        if pinned is not None:
+        if pinned == 1:
             queryset = queryset.filter(pinned=pinned)
 
         return queryset.order_by('-number')
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], name='pin_message')
     def pin_message(self, request, *args, **kwargs):
         sender = request.user
         instance = self.get_object()
@@ -363,7 +365,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         instance.save()
         return Response({'status': 'ok'})
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post'], name='unpin_message')
     def unpin_message(self, request, *args, **kwargs):
         sender = request.user
         instance = self.get_object()

@@ -63,6 +63,12 @@ class Profile(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True, null=True)
     is_teacher = models.BooleanField(default=False)
 
+    middle_name = models.CharField(max_length=255, blank=True)
+    diploma_supervisor_1 = models.CharField(max_length=255, blank=True)
+    diploma_supervisor_2 = models.CharField(max_length=255, blank=True)
+    diploma_topic = models.CharField(max_length=255, blank=True)
+    diploma_reviewer = models.CharField(max_length=255, blank=True)
+
     def email(self):
         return self.user.email
 

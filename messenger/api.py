@@ -382,13 +382,28 @@ class MessageViewSet(viewsets.ModelViewSet):
         return Response({'status': 'ok'})
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = msg_serializers.UserSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('first_name', 'last_name')
-    http_method_names = ['get', 'head', 'options', 'post']
+    http_method_names = ['get', 'head', 'options', 'post', 'patch']
+
+    def get_serializer(self, *args, **kwargs):
+        if self.action == 'partial_update':
+            return msg_serializers.EditUserSerializer(*args, **kwargs)
+        if self.action == 'retrieve':
+            return msg_serializers.EditUserSerializer(*args, **kwargs)
+        if self.action == 'me':
+            return msg_serializers.EditUserSerializer(*args, **kwargs)
+        return super().get_serializer(*args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        return Response({'error': 'Method not allowed.'}, status=405)
+
+    def update(self, request, *args, **kwargs):
+        return Response({'error': 'Method not allowed.'}, status=405)
 
     @action(detail=False, methods=['post'], name='Change group')
     def change_group(self, request):

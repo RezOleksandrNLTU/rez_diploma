@@ -22,6 +22,17 @@ class ProfileSerializer(serializers.ModelSerializer):
         depth = 1
 
 
+class EditProfileSerializer(serializers.ModelSerializer):
+    group = GroupSerializer(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ('photo', 'group', 'is_teacher', 'middle_name', 'diploma_supervisor_1', 'diploma_supervisor_2',
+                  'diploma_reviewer')
+        read_only_fields = ('group', 'is_teacher')
+        depth = 1
+
+
 class MessageProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
@@ -34,6 +45,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
+
+
+class EditUserSerializer(serializers.ModelSerializer):
+    profile = EditProfileSerializer()
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
+        read_only_fields = ('id', 'username', 'email')
 
 
 class ReadonlyUserSerializer(serializers.ModelSerializer):

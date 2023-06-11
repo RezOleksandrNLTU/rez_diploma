@@ -27,8 +27,8 @@ class EditProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('photo', 'group', 'is_teacher', 'middle_name', 'diploma_supervisor_1', 'diploma_supervisor_2',
-                  'diploma_reviewer')
+        fields = ('photo', 'group', 'is_teacher', 'middle_name', 'diploma_topic', 'diploma_supervisor_1',
+                  'diploma_supervisor_2', 'diploma_reviewer')
         read_only_fields = ('group', 'is_teacher')
         depth = 1
 
@@ -73,7 +73,6 @@ class EditUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
         read_only_fields = ('id', 'username', 'email')
-
 
 
 class ReadonlyUserSerializer(serializers.ModelSerializer):

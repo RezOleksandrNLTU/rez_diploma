@@ -402,8 +402,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return Response({'error': 'Method not allowed.'}, status=405)
 
-    def update(self, request, *args, **kwargs):
-        return Response({'error': 'Method not allowed.'}, status=405)
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
     @action(detail=False, methods=['post'], name='Change group')
     def change_group(self, request):

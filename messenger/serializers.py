@@ -50,10 +50,30 @@ class UserSerializer(serializers.ModelSerializer):
 class EditUserSerializer(serializers.ModelSerializer):
     profile = EditProfileSerializer()
 
+    def update(self, instance, validated_data):
+        if self.partial:
+            if 'profile' in validated_data:
+                profile_data = validated_data.pop('profile')
+                profile = instance.profile
+                for key, value in profile_data.items():
+                    setattr(profile, key, value)
+                profile.save()
+
+            if 'first_name' in validated_data:
+                instance.first_name = validated_data.pop('first_name')
+
+            if 'last_name' in validated_data:
+                instance.last_name = validated_data.pop('last_name')
+
+            instance.save()
+
+        return instance
+
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
         read_only_fields = ('id', 'username', 'email')
+
 
 
 class ReadonlyUserSerializer(serializers.ModelSerializer):

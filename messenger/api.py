@@ -186,11 +186,11 @@ class ChatViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'error': 'User does not exist'}, status=404)
         try:
-            Chat.objects.get(users__in=[request.user, user], type=Chat.CHAT_TYPES[0][0])
+            chat = Chat.objects.get(users__in=[request.user, user], type=Chat.CHAT_TYPES[0][0])
         except Chat.DoesNotExist:
             return Response({'exists': False})
         else:
-            return Response({'exists': True})
+            return Response({'exists': True, 'chat_id': chat.id})
 
     @action(detail=True, methods=['post'])
     def leave_chat(self, request, *args, **kwargs):

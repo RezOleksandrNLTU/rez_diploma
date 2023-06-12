@@ -1,8 +1,9 @@
-from re import match
+from io import BytesIO
 
 import requests
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.http import FileResponse
 from django.shortcuts import redirect
 from django.contrib.auth import login
 from rest_framework import viewsets
@@ -14,10 +15,11 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.decorators import authentication_classes, permission_classes
+from docxtpl import DocxTemplate
 
 from . import serializers as msg_serializers
 from .models import Chat, Message, Group, Profile, User
-from msg.settings import BASE_FRONTEND_URL
+from msg.settings import BASE_FRONTEND_URL, STATICFILES_DIRS
 
 
 @authentication_classes([])
@@ -393,10 +395,8 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_serializer(self, *args, **kwargs):
         if self.action == 'partial_update':
             return msg_serializers.EditUserSerializer(*args, **kwargs)
-        if self.action == 'retrieve':
-            return msg_serializers.EditUserSerializer(*args, **kwargs)
         if self.action == 'me':
-            return msg_serializers.EditUserSerializer(*args, **kwargs)
+            return msg_serializers.DetailedUserSerializer(*args, **kwargs)
         return super().get_serializer(*args, **kwargs)
 
     def create(self, request, *args, **kwargs):
@@ -437,3 +437,65 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], name='Print document')
+    def print_document(self, request):
+        user = request.user
+
+        document_name = request.query_params.get('document_name')
+        if not document_name:
+            return Response({'error': 'Document name is required.'}, status=400)
+
+        group = user.profile.group
+        if not group:
+            return Response({'error': 'Group is required.'}, status=400)
+
+        if document_name == 'title_page.docx':
+            context = {
+                'institute': group.institute,
+                'faculty': group.faculty,
+                'degree': group.get_degree(),
+                'diploma_topic': user.profile.diploma_topic,
+                'study_year': group.study_year,
+                'group': group.name,
+                'speciality': group.speciality,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'patronymic': user.profile.patronymic,
+                'diploma_supervisor_1': user.profile.diploma_supervisor_1,
+                'diploma_supervisor_2': user.profile.diploma_supervisor_2,
+                'diploma_reviewer': user.profile.diploma_reviewer,
+            }
+        elif document_name == 'task.docx':
+            context = {
+                'institute': group.institute,
+                'faculty': group.faculty,
+                'degree': group.get_degree(),
+                'speciality': group.speciality,
+                'last_name': user.last_name,
+                'first_name': user.first_name,
+                'patronymic': user.profile.patronymic,
+                'diploma_topic': user.profile.diploma_topic,
+                'diploma_supervisor_1': user.profile.diploma_supervisor_1,
+                'diploma_supervisor_2': user.profile.diploma_supervisor_2,
+            }
+        elif document_name == 'review.docx':
+            context = {
+                'last_name': user.last_name,
+                'first_name': user.first_name,
+                'patronymic': user.profile.patronymic,
+                'diploma_topic': user.profile.diploma_topic,
+                'speciality': group.speciality,
+                'group': group.name,
+                'diploma_reviewer_position': user.profile.diploma_reviewer_position,
+                'diploma_reviewer': user.profile.diploma_reviewer,
+            }
+        else:
+            return Response({'error': 'Invalid document name.'}, status=400)
+
+        document = DocxTemplate(STATICFILES_DIRS[0] + '/messenger/docx_templates/' + document_name)
+        document.render(context)
+        file = BytesIO()
+        document.save(file)
+        file.seek(0)
+        return FileResponse(file, as_attachment=True, filename=document_name)

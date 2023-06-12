@@ -13,6 +13,14 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = ('id', 'name')
 
 
+class DetailedGroupSerializer(serializers.ModelSerializer):
+    degree = serializers.CharField(source='get_degree')
+
+    class Meta:
+        model = Group
+        fields = ('id', 'name', 'study_year', 'speciality', 'institute', 'faculty', 'degree')
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     group = GroupSerializer(read_only=True)
 
@@ -27,9 +35,21 @@ class EditProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('photo', 'group', 'is_teacher', 'middle_name', 'diploma_topic', 'diploma_supervisor_1',
+        fields = ('photo', 'group', 'is_teacher', 'patronymic', 'diploma_topic', 'diploma_supervisor_1',
                   'diploma_supervisor_2', 'diploma_reviewer')
         read_only_fields = ('group', 'is_teacher')
+        depth = 1
+
+
+class DetailedProfileSerializer(serializers.ModelSerializer):
+    group = DetailedGroupSerializer(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ('photo', 'group', 'is_teacher', 'patronymic', 'diploma_topic', 'diploma_supervisor_1',
+                  'diploma_supervisor_2', 'diploma_reviewer')
+        read_only_fields = ('photo', 'group', 'is_teacher', 'patronymic', 'diploma_topic', 'diploma_supervisor_1',
+                            'diploma_supervisor_2', 'diploma_reviewer')
         depth = 1
 
 
@@ -73,6 +93,15 @@ class EditUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
         read_only_fields = ('id', 'username', 'email')
+
+
+class DetailedUserSerializer(serializers.ModelSerializer):
+    profile = DetailedProfileSerializer(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
+        read_only_fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
 
 
 class ReadonlyUserSerializer(serializers.ModelSerializer):

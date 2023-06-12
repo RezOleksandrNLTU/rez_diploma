@@ -8,6 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.models import User
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files import File
+from django.utils.translation import gettext_lazy as _
 
 
 User._meta.get_field('email')._unique = True
@@ -28,8 +29,18 @@ User.add_to_class("__str__", lambda self: self.email)
 
 
 class Group(models.Model):
-    name = models.CharField(max_length=255, blank=True, unique=True)
-    code = models.CharField(max_length=255, blank=True, unique=True)
+    class DegreeChoices(models.TextChoices):
+        BACHELOR = 'bachelor', _('бакалавр')
+        MASTER = 'master', _('магістр')
+
+    name = models.CharField(max_length=255, unique=True)
+    code = models.CharField(max_length=255, unique=True)
+
+    study_year = models.IntegerField(blank=True, null=True)
+    speciality = models.CharField(max_length=255, blank=True)
+    institute = models.CharField(max_length=255, blank=True)
+    faculty = models.CharField(max_length=255, blank=True)  # Кафедра
+    degree = models.CharField(max_length=255, choices=DegreeChoices.choices, blank=True)
 
     def __str__(self):
         return str(f'Група {self.name}(id={self.id})')
@@ -54,6 +65,9 @@ class Group(models.Model):
             group_chat.save()
         super().save(force_insert, force_update, using, update_fields)
 
+    def get_degree(self):
+        return self.DegreeChoices(self.degree).label
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -63,11 +77,12 @@ class Profile(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, blank=True, null=True)
     is_teacher = models.BooleanField(default=False)
 
-    middle_name = models.CharField(max_length=255, blank=True)
+    patronymic = models.CharField(max_length=255, blank=True)
     diploma_supervisor_1 = models.CharField(max_length=255, blank=True)
     diploma_supervisor_2 = models.CharField(max_length=255, blank=True)
     diploma_topic = models.CharField(max_length=255, blank=True)
     diploma_reviewer = models.CharField(max_length=255, blank=True)
+    diploma_reviewer_position = models.CharField(max_length=255, blank=True)
 
     def email(self):
         return self.user.email

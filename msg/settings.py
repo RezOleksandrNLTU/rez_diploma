@@ -35,7 +35,6 @@ BASE_FRONTEND_URL = 'http://localhost:3000'
 INSTALLED_APPS = [
     'daphne',
     'channels',
-    'messenger',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,7 +50,9 @@ INSTALLED_APPS = [
     'allauth.account',
 
     'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.google',\
+
+    'messenger',
 ]
 
 MIDDLEWARE = [
@@ -168,9 +169,9 @@ APPEND_SLASH = True
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'uk-ua'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Kyiv'
 
 USE_I18N = True
 

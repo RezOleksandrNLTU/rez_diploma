@@ -132,21 +132,21 @@ class ChatViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.type == Chat.CHAT_TYPES[0][0]:
+        if instance.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to edit this chat.'}, status=403)
-        if instance.type == Chat.CHAT_TYPES[2][0] and not request.user.profile.is_teacher:
+        if instance.type == Chat.ChatTypes.DIPLOMA and not request.user.profile.is_teacher:
             return Response({'error': 'You are not allowed to edit this chat.'}, status=403)
         if request.user != instance.creator:
             return Response({'error': 'You are not allowed to edit this chat.'}, status=403)
         return super().partial_update(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
-        if request.data.get('type') == Chat.CHAT_TYPES[0][0]:
+        if request.data.get('type') == Chat.ChatTypes.PRIVATE:
             users = request.data.get('users', [])
             if len(users) != 2 and request.user not in users:
                 return Response({'error': 'You are not allowed to create this chat.'}, status=403)
             try:
-                Chat.objects.get(users__in=users, type=Chat.CHAT_TYPES[0][0])
+                Chat.objects.get(users__in=users, type=Chat.ChatTypes.PRIVATE)
             except Chat.DoesNotExist:
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
@@ -154,23 +154,23 @@ class ChatViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data, status=201)
             else:
                 return Response({'error': 'This chat already exists'}, status=403)
-        elif request.data.get('type') == Chat.CHAT_TYPES[1][0]:
+        elif request.data.get('type') == Chat.ChatTypes.GROUP:
             return super().create(request, *args, **kwargs)
-        elif request.data.get('type') == Chat.CHAT_TYPES[2][0]:
+        elif request.data.get('type') == Chat.ChatTypes.DIPLOMA:
             return Response({'error': 'You are not allowed to create this chat.'}, status=403)
         return Response({'error': 'You are not allowed to create this chat.'}, status=403)
 
     def perform_create(self, serializer):
-        if serializer.validated_data.get('type') == Chat.CHAT_TYPES[1][0]:
+        if serializer.validated_data.get('type') == Chat.ChatTypes.GROUP:
             serializer.save(creator=self.request.user)
         else:
             serializer.save()
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.type == Chat.CHAT_TYPES[0][0]:
+        if instance.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to delete this chat.'}, status=403)
-        if instance.type == Chat.CHAT_TYPES[2][0] and not request.user.profile.is_teacher:
+        if instance.type == Chat.ChatTypes.DIPLOMA and not request.user.profile.is_teacher:
             return Response({'error': 'You are not allowed to delete this chat.'}, status=403)
         if request.user != instance.creator:
             return Response({'error': 'You are not allowed to delete this chat.'}, status=403)
@@ -186,7 +186,7 @@ class ChatViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'error': 'User does not exist'}, status=404)
         try:
-            chat = Chat.objects.get(users__in=[request.user, user], type=Chat.CHAT_TYPES[0][0])
+            chat = Chat.objects.get(users__in=[request.user, user], type=Chat.ChatTypes.PRIVATE)
         except Chat.DoesNotExist:
             return Response({'exists': False})
         else:
@@ -196,9 +196,9 @@ class ChatViewSet(viewsets.ModelViewSet):
     def leave_chat(self, request, *args, **kwargs):
         sender = request.user
         instance = self.get_object()
-        if instance.type == Chat.CHAT_TYPES[0][0]:
+        if instance.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to leave this chat.'}, status=403)
-        if instance.type == Chat.CHAT_TYPES[2][0] and not request.user.profile.is_teacher:
+        if instance.type == Chat.ChatTypes.DIPLOMA and not request.user.profile.is_teacher:
             return Response({'error': 'You are not allowed to leave this chat.'}, status=403)
         if sender == instance.creator:
             return Response({'error': 'You are not allowed to leave this chat.'}, status=403)
@@ -211,9 +211,9 @@ class ChatViewSet(viewsets.ModelViewSet):
         sender = request.user
         instance = self.get_object()
 
-        if instance.type == Chat.CHAT_TYPES[0][0]:
+        if instance.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to add users to this chat.'}, status=403)
-        if instance.type == Chat.CHAT_TYPES[2][0] and not request.user.profile.is_teacher:
+        if instance.type == Chat.ChatTypes.DIPLOMA and not request.user.profile.is_teacher:
             return Response({'error': 'You are not allowed to add users to this chat.'}, status=403)
         if sender != instance.creator:
             return Response({'error': 'You are not allowed to add users to this chat.'}, status=403)
@@ -234,9 +234,9 @@ class ChatViewSet(viewsets.ModelViewSet):
         sender = request.user
         instance = self.get_object()
 
-        if instance.type == Chat.CHAT_TYPES[0][0]:
+        if instance.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to remove users from this chat.'}, status=403)
-        if instance.type == Chat.CHAT_TYPES[2][0] and not request.user.profile.is_teacher:
+        if instance.type == Chat.ChatTypes.DIPLOMA and not request.user.profile.is_teacher:
             return Response({'error': 'You are not allowed to remove users from this chat.'}, status=403)
         if sender != instance.creator:
             return Response({'error': 'You are not allowed to remove users from this chat.'}, status=403)
@@ -356,9 +356,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         sender = request.user
         instance = self.get_object()
 
-        if instance.chat.type == Chat.CHAT_TYPES[0][0]:
+        if instance.chat.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
-        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not sender.profile.is_teacher:
+        if instance.chat.type == Chat.ChatTypes.DIPLOMA and not sender.profile.is_teacher:
             return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
         if sender != instance.chat.creator:
             return Response({'error': 'You are not allowed to pin messages in this chat.'}, status=403)
@@ -372,9 +372,9 @@ class MessageViewSet(viewsets.ModelViewSet):
         sender = request.user
         instance = self.get_object()
 
-        if instance.chat.type == Chat.CHAT_TYPES[0][0]:
+        if instance.chat.type == Chat.ChatTypes.PRIVATE:
             return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
-        if instance.chat.type == Chat.CHAT_TYPES[2][0] and not sender.profile.is_teacher:
+        if instance.chat.type == Chat.ChatTypes.DIPLOMA and not sender.profile.is_teacher:
             return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
         if sender != instance.chat.creator:
             return Response({'error': 'You are not allowed to unpin messages in this chat.'}, status=403)
@@ -416,9 +416,9 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid code'}, status=400)
 
         try:
-            group_chat = Chat.objects.get(type=Chat.CHAT_TYPES[2][0], group=group)
+            group_chat = Chat.objects.get(type=Chat.ChatTypes.DIPLOMA, group=group)
         except Chat.DoesNotExist:
-            group_chat = Chat.objects.create(name=f'Дипломний чат {group.name}', type=Chat.CHAT_TYPES[2][0],
+            group_chat = Chat.objects.create(name=f'Дипломний чат {group.name}', type=Chat.ChatTypes.DIPLOMA,
                                              group=group)
             group_users = Profile.objects.filter(group=group)
             for user in group_users:

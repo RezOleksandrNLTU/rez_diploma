@@ -146,7 +146,10 @@ class ChatViewSet(viewsets.ModelViewSet):
             if len(users) != 2 and request.user not in users:
                 return Response({'error': 'You are not allowed to create this chat.'}, status=403)
             try:
-                Chat.objects.get(users__in=users, type=Chat.ChatTypes.PRIVATE)
+                chats = Chat.objects.filter(type=Chat.ChatTypes.PRIVATE)
+                for user_id in users:
+                    chats = chats.filter(users__id=user_id)
+                chat = chats.get()
             except Chat.DoesNotExist:
                 serializer = self.get_serializer(data=request.data)
                 serializer.is_valid(raise_exception=True)
@@ -188,7 +191,11 @@ class ChatViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             return Response({'error': 'User does not exist'}, status=404)
         try:
-            chat = Chat.objects.get(users__in=[request.user, user], type=Chat.ChatTypes.PRIVATE)
+            user_ids = [request.user.id, user.id]
+            chats = Chat.objects.filter(type=Chat.ChatTypes.PRIVATE)
+            for user_id in user_ids:
+                chats = chats.filter(users__id=user_id)
+            chat = chats.get()
         except Chat.DoesNotExist:
             return Response({'exists': False})
         else:

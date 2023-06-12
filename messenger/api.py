@@ -152,8 +152,10 @@ class ChatViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 self.perform_create(serializer)
                 return Response(serializer.data, status=201)
-            else:
+            except Chat.MultipleObjectsReturned:
                 return Response({'error': 'This chat already exists'}, status=403)
+            else:
+                return Response({'error': 'Unknown error'}, status=400)
         elif request.data.get('type') == Chat.ChatTypes.GROUP:
             return super().create(request, *args, **kwargs)
         elif request.data.get('type') == Chat.ChatTypes.DIPLOMA:

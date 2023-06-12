@@ -14,6 +14,7 @@ from .forms import CustomUserCreationForm
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'email')
     search_fields = ('user__username',)
+    exclude = ('bio', 'email_confirmed',)
 
 
 class ProfileInline(admin.StackedInline):
@@ -21,7 +22,7 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     verbose_name_plural = 'Профілі'
 
-    exclude = ('email_confirmed', 'bio')
+    exclude = ('bio', 'email_confirmed',)
 
 
 class UserAdminCustom(UserAdmin):

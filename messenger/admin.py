@@ -19,13 +19,15 @@ class ProfileAdmin(admin.ModelAdmin):
 class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    verbose_name_plural = 'profile'
+    verbose_name_plural = 'Профілі'
+
+    exclude = ('email_confirmed', 'bio')
 
 
 class UserAdminCustom(UserAdmin):
     add_form = CustomUserCreationForm
     list_display = ('id', ) + UserAdmin.list_display + ('is_active',)
-    list_filter = UserAdmin.list_filter + ('profile__email_confirmed',)
+    # list_filter = UserAdmin.list_filter + ('profile__email_confirmed',)
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {'fields': ('email',)}),
     )

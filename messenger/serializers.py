@@ -104,6 +104,12 @@ class DetailedUserSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile')
 
 
+class MinimumUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'first_name', 'last_name')
+
+
 class ReadonlyUserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer(read_only=True)
 
@@ -124,6 +130,7 @@ class MessageUserSerializer(serializers.ModelSerializer):
 
 class ChatSerializer(serializers.ModelSerializer):
     last_message = serializers.SerializerMethodField()
+    users = MinimumUserSerializer(many=True, read_only=True)
 
     def get_last_message(self, obj):
         try:

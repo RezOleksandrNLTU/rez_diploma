@@ -61,13 +61,10 @@ class GoogleLoginApi(APIView):
             defaults=profile_data
         )
 
-        if not created:
-            user.first_name = profile_data['first_name']
-            user.last_name = profile_data['last_name']
-
-        picture_url = user_data.get('picture', '')
-        if picture_url:
-            user.profile.get_photo_from_url(picture_url)
+        if created:
+            picture_url = user_data.get('picture', '')
+            if picture_url:
+                user.profile.get_photo_from_url(picture_url)
 
         email_domain = user.email.split('@')[1]
 

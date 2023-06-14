@@ -7,7 +7,7 @@ from allauth.account.models import EmailAddress
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 
 
-from .models import Profile, Chat, Message, Group
+from .models import Profile, Chat, Message, Group, DocumentTemplate
 from .forms import CustomUserCreationForm
 
 
@@ -51,12 +51,22 @@ class GroupAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
+class DocumentTemplateAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(DocumentTemplateAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['template_file'].help_text = 'Виберіть шаблон для документа'
+        return form
+
+
 admin.site.register(Profile, ProfileAdmin)
 admin.site.unregister(User)
 admin.site.register(User, UserAdminCustom)
 admin.site.register(Chat, ChatAdmin)
 admin.site.register(Message, MessageAdmin)
 admin.site.register(Group, GroupAdmin)
+admin.site.register(DocumentTemplate, DocumentTemplateAdmin)
 
 admin.site.unregister(Site)
 admin.site.unregister(UserGroup)

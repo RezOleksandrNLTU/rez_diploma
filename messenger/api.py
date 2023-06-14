@@ -18,8 +18,8 @@ from rest_framework.decorators import authentication_classes, permission_classes
 from docxtpl import DocxTemplate
 
 from . import serializers as msg_serializers
-from .models import Chat, Message, Group, Profile, User
-from msg.settings import BASE_FRONTEND_URL, STATICFILES_DIRS
+from .models import Chat, Message, Group, Profile, User, DocumentTemplate
+from msg.settings import BASE_FRONTEND_URL, STATICFILES_DIRS, BASE_DIR
 
 
 @authentication_classes([])
@@ -459,52 +459,38 @@ class UserViewSet(viewsets.ModelViewSet):
         if not group:
             return Response({'error': 'Group is required.'}, status=400)
 
-        if document_name == 'title_page.docx':
-            context = {
-                'institute': group.institute,
-                'faculty': group.faculty,
-                'degree': group.get_degree(),
-                'diploma_topic': user.profile.diploma_topic,
-                'study_year': group.study_year,
-                'group': group.name,
-                'speciality': group.speciality,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'patronymic': user.profile.patronymic,
-                'diploma_supervisor_1': user.profile.diploma_supervisor_1,
-                'diploma_supervisor_2': user.profile.diploma_supervisor_2,
-                'diploma_reviewer': user.profile.diploma_reviewer,
-            }
-        elif document_name == 'task.docx':
-            context = {
-                'institute': group.institute,
-                'faculty': group.faculty,
-                'degree': group.get_degree(),
-                'speciality': group.speciality,
-                'last_name': user.last_name,
-                'first_name': user.first_name,
-                'patronymic': user.profile.patronymic,
-                'diploma_topic': user.profile.diploma_topic,
-                'diploma_supervisor_1': user.profile.diploma_supervisor_1,
-                'diploma_supervisor_2': user.profile.diploma_supervisor_2,
-            }
-        elif document_name == 'review.docx':
-            context = {
-                'last_name': user.last_name,
-                'first_name': user.first_name,
-                'patronymic': user.profile.patronymic,
-                'diploma_topic': user.profile.diploma_topic,
-                'speciality': group.speciality,
-                'group': group.name,
-                'diploma_reviewer_position': user.profile.diploma_reviewer_position,
-                'diploma_reviewer': user.profile.diploma_reviewer,
-            }
-        else:
+        context = {
+            'institute': group.institute,
+            'faculty': group.faculty,
+            'degree': group.get_degree(),
+            'diploma_topic': user.profile.diploma_topic,
+            'study_year': group.study_year,
+            'group': group.name,
+            'speciality': group.speciality,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'patronymic': user.profile.patronymic,
+            'diploma_supervisor_1': user.profile.diploma_supervisor_1,
+            'diploma_supervisor_2': user.profile.diploma_supervisor_2,
+            'diploma_reviewer': user.profile.diploma_reviewer,
+            'diploma_reviewer_position': user.profile.diploma_reviewer_position,
+        }
+
+        try:
+            document_template = DocumentTemplate.objects.get(name=document_name)
+        except DocumentTemplate.DoesNotExist:
             return Response({'error': 'Invalid document name.'}, status=400)
 
-        document = DocxTemplate(STATICFILES_DIRS[0] + '/messenger/docx_templates/' + document_name)
+        document = DocxTemplate(document_template.template_file.path)
         document.render(context)
         file = BytesIO()
         document.save(file)
         file.seek(0)
         return FileResponse(file, as_attachment=True, filename=document_name)
+
+
+class DocumentTemplateViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = DocumentTemplate.objects.all()
+    serializer_class = msg_serializers.DocumentTemplateSerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ['get', 'head', 'options']

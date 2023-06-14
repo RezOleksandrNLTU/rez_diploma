@@ -174,3 +174,16 @@ class Message(models.Model):
             number = calc_msg_number(self.chat)
             self.number = number
         super(Message, self).save(*args, **kwargs)
+
+
+class DocumentTemplate(models.Model):
+    template_file = models.FileField(upload_to='static/messenger/document_templates', verbose_name='Файл шаблону')
+    name = models.CharField(max_length=255, verbose_name='Назва шаблону', unique=True)
+    button_text = models.CharField(max_length=255, verbose_name='Текст кнопки')
+
+    class Meta:
+        verbose_name = 'Шаблон документів'
+        verbose_name_plural = 'Шаблони документів'
+
+    def __str__(self):
+        return f'{self.name}'

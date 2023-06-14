@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Chat, Message, Profile, Group
+from .models import Chat, Message, Profile, Group, DocumentTemplate
 
 
 message_timestamp_format = '%Y-%d-%m %H:%M:%S'
@@ -190,3 +190,10 @@ class ChatListMessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ('user', 'text', 'file', 'timestamp', 'pinned')
         depth = 1
+
+
+class DocumentTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentTemplate
+        fields = ('name', 'button_text')
+        read_only_fields = ('name', 'button_text')

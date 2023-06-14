@@ -55,8 +55,28 @@ class DocumentTemplateAdmin(admin.ModelAdmin):
     list_display = ('id', 'name')
 
     def get_form(self, request, obj=None, **kwargs):
+        help_text = """
+    Для вставки даних в шаблон використовуйте наступні теги (тег: пояснення)<br><br>
+institute: інститут<br>
+faculty: кафедра\n<br>
+degree: ступінь<br>
+diploma_topic: тема диплому<br>
+study_year: курс<br>
+group: група<br>
+speciality: спеціальність<br>
+first_name: ім'я<br>
+last_name: прізвище<br>
+patronymic: по-батькові<br>
+diploma_supervisor_1: керівник диплому<br>
+diploma_supervisor_2: керівник диплому<br>
+diploma_reviewer: рецензент<br>
+diploma_reviewer_position: посада рецензента<br><br>
+
+Теги вставляються в шаблон таким чином: {{тег}}
+        """
+
         form = super(DocumentTemplateAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields['template_file'].help_text = 'Виберіть шаблон для документа'
+        form.base_fields['template_file'].help_text = help_text
         return form
 
 

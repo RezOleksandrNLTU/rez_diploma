@@ -18,7 +18,7 @@ class DetailedGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('id', 'name', 'study_year', 'speciality', 'institute', 'faculty', 'degree')
+        fields = ('id', 'name', 'study_year', 'speciality', 'institute', 'faculty', 'degree', 'information')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -147,6 +147,7 @@ class ChatSerializer(serializers.ModelSerializer):
 class DetailedChatSerializer(serializers.ModelSerializer):
     users = UserSerializer(many=True, read_only=True)
     creator = ReadonlyUserSerializer(read_only=True)
+    group = DetailedGroupSerializer(read_only=True)
 
     class Meta:
         model = Chat

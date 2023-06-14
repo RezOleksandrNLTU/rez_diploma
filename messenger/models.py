@@ -44,6 +44,9 @@ class Group(models.Model):
     faculty = models.CharField(max_length=255, blank=True, verbose_name='Кафедра')
     degree = models.CharField(max_length=255, choices=DegreeChoices.choices, blank=True, verbose_name='Ступінь')
 
+    information = models.TextField(blank=True, verbose_name='Інформація',
+                                   default='''{\n    "links": [\n        {"опис": "посилання"},\n    ]\n}''')
+
     def __str__(self):
         return str(f'Група {self.name}')
 
@@ -119,7 +122,6 @@ def update_user_profile(sender, instance, created, **kwargs):
 
 
 class Chat(models.Model):
-
     class ChatTypes(models.TextChoices):
         PRIVATE = 'private', _('приватний')
         GROUP = 'group', _('груповий')

@@ -62,7 +62,7 @@ class Group(models.Model):
         if not self.code:
             self.code = self.name
 
-        group_chat = Chat.objects.filter(name=self.name, type='group', group=self)
+        group_chat = Chat.objects.filter(Chat.ChatTypes.DIPLOMA, group=self)
         if not group_chat:
             group_chat = Chat.objects.create(name=f'Дипломний чат {self.name}', type=Chat.ChatTypes.DIPLOMA,
                                              group=self)

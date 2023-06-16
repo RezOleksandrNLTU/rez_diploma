@@ -64,7 +64,7 @@ class Group(models.Model):
 
         group_chat = Chat.objects.filter(name=self.name, type='group', group=self)
         if not group_chat:
-            group_chat = Chat.objects.create(name=f'Дипломний чат {self.name}', type=Chat.CHAT_TYPES[2][0],
+            group_chat = Chat.objects.create(name=f'Дипломний чат {self.name}', type=Chat.ChatTypes.DIPLOMA,
                                              group=self)
             group_users = Profile.objects.filter(group=self)
             for user in group_users:

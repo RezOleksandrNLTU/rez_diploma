@@ -44,8 +44,10 @@ class Group(models.Model):
     faculty = models.CharField(max_length=255, blank=True, verbose_name='Кафедра')
     degree = models.CharField(max_length=255, choices=DegreeChoices.choices, blank=True, verbose_name='Ступінь')
 
-    information = models.TextField(blank=True, verbose_name='Інформація',
-                                   default='''{\n    "links": [\n        {"опис": "посилання"},\n    ]\n}''')
+    information = models.TextField(blank=True, verbose_name='Посилання', help_text='''Заповнювати у форматі:
+Посилання: https://www.google.com.ua/''')
+    methodological_guide = models.FileField(upload_to='static/messenger/methodological_guides', blank=True,
+                                            verbose_name='Методичні вказівки')
 
     def __str__(self):
         return str(f'Група {self.name}')

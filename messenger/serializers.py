@@ -18,7 +18,8 @@ class DetailedGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('id', 'name', 'study_year', 'speciality', 'institute', 'faculty', 'degree', 'information')
+        fields = ('id', 'name', 'study_year', 'speciality', 'institute', 'faculty', 'degree', 'information',
+                  'methodological_guide')
 
 
 class ProfileSerializer(serializers.ModelSerializer):

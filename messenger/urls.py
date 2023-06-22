@@ -14,4 +14,5 @@ router.register(r'document_templates', api.DocumentTemplateViewSet, basename='do
 urlpatterns = [
     path('accounts/google/login/callback/', api.google_login_callback, name='google_login_callback'),
     path('api/', include(router.urls)),
+    path('api/logout', api.logout_view, name='logout'),
 ]

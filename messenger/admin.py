@@ -2,9 +2,6 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group as UserGroup
 from django.contrib.sites.models import Site
-from rest_framework.authtoken.models import TokenProxy
-from allauth.account.models import EmailAddress
-from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
 
 
 from .models import Profile, Chat, Message, Group, DocumentTemplate
@@ -90,10 +87,5 @@ admin.site.register(DocumentTemplate, DocumentTemplateAdmin)
 
 admin.site.unregister(Site)
 admin.site.unregister(UserGroup)
-admin.site.unregister(TokenProxy)
-admin.site.unregister(EmailAddress)
-admin.site.unregister(SocialAccount)
-admin.site.unregister(SocialApp)
-admin.site.unregister(SocialToken)
 
 admin.site.site_header = 'Месенджер НЛТУ'

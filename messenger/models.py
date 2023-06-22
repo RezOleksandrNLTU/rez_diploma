@@ -9,6 +9,24 @@ from django.contrib.auth.models import User
 from django.core.files.temp import NamedTemporaryFile
 from django.core.files import File
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import UserManager
+
+
+def new_create_superuser(self, email=None, password=None, **extra_fields):
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+
+        username = email.split('@')[0]
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+
+        return self._create_user(username, email, password, **extra_fields)
+
+
+UserManager.create_superuser = new_create_superuser
 
 
 User._meta.get_field('email')._unique = True

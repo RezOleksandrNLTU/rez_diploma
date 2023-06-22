@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.http import FileResponse
 from django.shortcuts import redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
 from rest_framework import viewsets
 from rest_framework import filters
 from rest_framework.decorators import action
@@ -19,7 +19,7 @@ from docxtpl import DocxTemplate
 
 from . import serializers as msg_serializers
 from .models import Chat, Message, Group, Profile, User, DocumentTemplate
-from msg.settings import BASE_FRONTEND_URL, STATICFILES_DIRS, BASE_DIR
+from msg.settings import BASE_FRONTEND_URL
 
 
 @authentication_classes([])
@@ -491,3 +491,14 @@ class DocumentTemplateViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = msg_serializers.DocumentTemplateSerializer
     permission_classes = (IsAuthenticated,)
     http_method_names = ['get', 'head', 'options']
+
+
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        logout(request)
+        return Response({'status': 'ok'})
+
+
+logout_view = LogoutView.as_view()
